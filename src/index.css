@@ -1,0 +1,92 @@
+@import "tailwindcss";
+
+@theme {
+  --color-naranja: #F2612C;
+  --color-naranja-dark: #D64822;
+  --color-dorado: #C6A258;
+  --color-negro: #010101;
+  --color-blanco: #FFFFFF;
+
+  --color-naranja-light: #FEF0EB;
+  --color-dorado-light: #F9F3E8;
+  --color-gris: #6B7280;
+  --color-gris-light: #F3F4F6;
+  --color-gris-border: #E5E7EB;
+  --color-success: #16A34A;
+  --color-error: #DC2626;
+
+  --font-heading: "Poppins", sans-serif;
+  --font-body: "Inter", sans-serif;
+
+  --animate-fade-in: fade-in 0.3s ease-out;
+  --animate-slide-up: slide-up 0.3s ease-out;
+  --animate-scale-in: scale-in 0.2s ease-out;
+  --animate-bounce-in: bounce-in 0.4s ease-out;
+  --animate-check: check-draw 0.3s ease-out forwards;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes bounce-in {
+  0% { opacity: 0; transform: scale(0.3); }
+  50% { transform: scale(1.05); }
+  70% { transform: scale(0.95); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes check-draw {
+  from { stroke-dashoffset: 24; }
+  to { stroke-dashoffset: 0; }
+}
+
+body {
+  font-family: var(--font-body);
+  color: var(--color-negro);
+  background-color: var(--color-blanco);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+}
+
+/* Smooth scrollbar */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Hide scrollbar on mobile for horizontal overflow */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Selection color */
+::selection {
+  background-color: #F2612C33;
+  color: var(--color-negro);
+}
+
+/* Focus visible for accessibility */
+*:focus-visible {
+  outline: 2px solid var(--color-naranja);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
