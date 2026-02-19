@@ -13,8 +13,13 @@ export default function ProteinSelector({ onNext, onPrev }) {
   const toggleMixProtein = useOrderStore((s) => s.toggleMixProtein);
   const { pokeTypeName, proteinGrams } = useBuilderRules();
 
-  // Premium solo muestra premium, Base solo muestra base
-  const tierFilter = pokeTypeName.toLowerCase() === 'premium' ? ['premium'] : ['base'];
+  // Premium: solo premium en individual, ambas tiers en 50/50; Base: siempre solo base
+  const tierFilter =
+    pokeTypeName.toLowerCase() === 'premium'
+      ? currentBowl.isMixProtein
+        ? ['premium', 'base']
+        : ['premium']
+      : ['base'];
   const rawProteins = getProteinsByTiers(tierFilter);
 
   // Expand items with preparationStyles into virtual entries

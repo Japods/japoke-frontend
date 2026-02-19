@@ -104,11 +104,10 @@ const useOrderStore = create(
       toggleMixProtein: () =>
         set((s) => {
           const isMix = !s.currentBowl.isMixProtein;
-          const proteins = isMix
-            ? s.currentBowl.proteins.slice(0, 2)
-            : s.currentBowl.proteins.slice(0, 1);
+          // Limpiar selección al cambiar modo para evitar proteínas
+          // de tiers incorrectos guardadas invisiblemente
           return {
-            currentBowl: { ...s.currentBowl, isMixProtein: isMix, proteins },
+            currentBowl: { ...s.currentBowl, isMixProtein: isMix, proteins: [] },
           };
         }),
 
