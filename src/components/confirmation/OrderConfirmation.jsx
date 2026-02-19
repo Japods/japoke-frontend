@@ -65,6 +65,21 @@ export default function OrderConfirmation() {
             {completedOrder.orderNumber}
           </span>
         </div>
+        {completedOrder.createdAt && (
+          <p className="text-xs text-gris mt-3 flex items-center justify-center gap-1">
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Pedido realizado a las{' '}
+            <span className="font-semibold text-negro">
+              {new Date(completedOrder.createdAt).toLocaleTimeString('es-VE', { hour: '2-digit', minute: '2-digit' })}
+            </span>
+            {' '}del{' '}
+            <span className="font-semibold text-negro">
+              {new Date(completedOrder.createdAt).toLocaleDateString('es-VE', { day: 'numeric', month: 'long' })}
+            </span>
+          </p>
+        )}
       </motion.div>
 
       {/* Customer info */}
