@@ -3,12 +3,25 @@ import { motion } from 'framer-motion';
 import useOrderStore from '../../store/useOrderStore';
 import Input from '../ui/Input';
 
+// Franjas de entrega disponibles (cada 30 min, en horario de operación)
+const DELIVERY_SLOTS = (() => {
+  const slots = [];
+  for (let h = 11; h <= 21; h++) {
+    slots.push(`${String(h).padStart(2, '0')}:00`);
+    if (h < 21) slots.push(`${String(h).padStart(2, '0')}:30`);
+  }
+  return slots;
+})();
+
 export default function CustomerForm() {
   const customer = useOrderStore((s) => s.customer);
   const setCustomer = useOrderStore((s) => s.setCustomer);
+  const deliveryTime = useOrderStore((s) => s.deliveryTime);
+  const setDeliveryTime = useOrderStore((s) => s.setDeliveryTime);
   const nextStep = useOrderStore((s) => s.nextStep);
 
   const [form, setForm] = useState({ ...customer });
+  const [selectedTime, setSelectedTime] = useState(deliveryTime || '');
   const [errors, setErrors] = useState({});
 
   function handleChange(e) {
@@ -31,6 +44,8 @@ export default function CustomerForm() {
       newErrors.phone = 'Teléfono es requerido (mín. 7 dígitos)';
     if (!form.address.trim() || form.address.trim().length < 5)
       newErrors.address = 'Dirección es requerida (mín. 5 caracteres)';
+    if (!selectedTime)
+      newErrors.deliveryTime = 'Selecciona la hora de entrega';
     return newErrors;
   }
 
@@ -43,6 +58,7 @@ export default function CustomerForm() {
     }
 
     setCustomer(form);
+    setDeliveryTime(selectedTime);
     nextStep();
   }
 
@@ -109,6 +125,35 @@ export default function CustomerForm() {
           error={errors.address}
           required
         />
+        {/* Hora de entrega */}
+        <div>
+          <label className="block text-sm font-medium text-negro mb-2">
+            ¿A qué hora quieres tu poke? <span className="text-naranja">*</span>
+          </label>
+          <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
+            {DELIVERY_SLOTS.map((slot) => (
+              <button
+                key={slot}
+                type="button"
+                onClick={() => {
+                  setSelectedTime(slot);
+                  setErrors((prev) => ({ ...prev, deliveryTime: '' }));
+                }}
+                className={`py-2 text-sm font-semibold rounded-xl border-2 transition-colors duration-150 cursor-pointer
+                  ${selectedTime === slot
+                    ? 'bg-naranja border-naranja text-white'
+                    : 'bg-white border-gris-border text-negro hover:border-naranja hover:text-naranja'
+                  }`}
+              >
+                {slot}
+              </button>
+            ))}
+          </div>
+          {errors.deliveryTime && (
+            <p className="text-red-500 text-xs mt-1">{errors.deliveryTime}</p>
+          )}
+        </div>
+
         <Input
           label="Notas especiales"
           name="notes"

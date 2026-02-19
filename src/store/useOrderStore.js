@@ -19,6 +19,9 @@ const useOrderStore = create(
         notes: '',
       },
 
+      deliveryTime: '',
+      setDeliveryTime: (deliveryTime) => set({ deliveryTime }),
+
       // Order
       bowls: [],
       currentBowl: createEmptyBowl(),

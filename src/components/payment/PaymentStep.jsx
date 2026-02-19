@@ -100,6 +100,7 @@ function formatEur(amount) {
 
 export default function PaymentStep() {
   const customer = useOrderStore((s) => s.customer);
+  const deliveryTime = useOrderStore((s) => s.deliveryTime);
   const bowls = useOrderStore((s) => s.bowls);
   const paymentData = useOrderStore((s) => s.paymentData);
   const setPaymentData = useOrderStore((s) => s.setPaymentData);
@@ -194,6 +195,7 @@ export default function PaymentStep() {
         referenceId: paymentData.referenceId || '',
         referenceImageUrl: paymentData.referenceImageUrl || '',
       },
+      deliveryTime: deliveryTime || null,
     };
   }
 
