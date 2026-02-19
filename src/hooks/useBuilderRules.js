@@ -10,7 +10,7 @@ export default function useBuilderRules() {
   if (!pokeType) {
     return {
       proteinGrams: 100,
-      baseGrams: 120,
+      baseGrams: 100,
       maxVegetables: 4,
       maxSauces: 2,
       maxToppings: 1,
