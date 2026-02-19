@@ -3,15 +3,23 @@ import { motion } from 'framer-motion';
 import useOrderStore from '../../store/useOrderStore';
 import Input from '../ui/Input';
 
-// Franjas de entrega disponibles (cada 30 min, en horario de operación)
-const DELIVERY_SLOTS = (() => {
+// Genera los slots disponibles a partir de la hora actual (mínimo 12:00, máximo 21:00)
+function getAvailableSlots() {
+  const now = new Date();
+  const nowMinutes = now.getHours() * 60 + now.getMinutes();
+
   const slots = [];
-  for (let h = 11; h <= 21; h++) {
-    slots.push(`${String(h).padStart(2, '0')}:00`);
-    if (h < 21) slots.push(`${String(h).padStart(2, '0')}:30`);
+  for (let h = 12; h <= 21; h++) {
+    for (const m of [0, 30]) {
+      if (h === 21 && m === 30) continue;
+      const slotMinutes = h * 60 + m;
+      if (slotMinutes > nowMinutes) {
+        slots.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
+      }
+    }
   }
   return slots;
-})();
+}
 
 export default function CustomerForm() {
   const customer = useOrderStore((s) => s.customer);
@@ -19,6 +27,8 @@ export default function CustomerForm() {
   const deliveryTime = useOrderStore((s) => s.deliveryTime);
   const setDeliveryTime = useOrderStore((s) => s.setDeliveryTime);
   const nextStep = useOrderStore((s) => s.nextStep);
+
+  const availableSlots = getAvailableSlots();
 
   const [form, setForm] = useState({ ...customer });
   const [selectedTime, setSelectedTime] = useState(deliveryTime || '');
@@ -130,25 +140,31 @@ export default function CustomerForm() {
           <label className="block text-sm font-medium text-negro mb-2">
             ¿A qué hora quieres tu poke? <span className="text-naranja">*</span>
           </label>
-          <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
-            {DELIVERY_SLOTS.map((slot) => (
-              <button
-                key={slot}
-                type="button"
-                onClick={() => {
-                  setSelectedTime(slot);
-                  setErrors((prev) => ({ ...prev, deliveryTime: '' }));
-                }}
-                className={`py-2 text-sm font-semibold rounded-xl border-2 transition-colors duration-150 cursor-pointer
-                  ${selectedTime === slot
-                    ? 'bg-naranja border-naranja text-white'
-                    : 'bg-white border-gris-border text-negro hover:border-naranja hover:text-naranja'
-                  }`}
-              >
-                {slot}
-              </button>
-            ))}
-          </div>
+          {availableSlots.length === 0 ? (
+            <p className="text-sm text-gris bg-gris-light rounded-xl px-4 py-3">
+              Ya no hay horarios disponibles para hoy. Puedes contactarnos directamente.
+            </p>
+          ) : (
+            <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
+              {availableSlots.map((slot) => (
+                <button
+                  key={slot}
+                  type="button"
+                  onClick={() => {
+                    setSelectedTime(slot);
+                    setErrors((prev) => ({ ...prev, deliveryTime: '' }));
+                  }}
+                  className={`py-2 text-sm font-semibold rounded-xl border-2 transition-colors duration-150 cursor-pointer
+                    ${selectedTime === slot
+                      ? 'bg-naranja border-naranja text-white'
+                      : 'bg-white border-gris-border text-negro hover:border-naranja hover:text-naranja'
+                    }`}
+                >
+                  {slot}
+                </button>
+              ))}
+            </div>
+          )}
           {errors.deliveryTime && (
             <p className="text-red-500 text-xs mt-1">{errors.deliveryTime}</p>
           )}
