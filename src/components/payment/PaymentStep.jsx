@@ -4,8 +4,44 @@ import useOrderStore from '../../store/useOrderStore';
 import useCatalogStore from '../../store/useCatalogStore';
 import { createOrder, getExchangeRates } from '../../api/client';
 import Input from '../ui/Input';
-import Button from '../ui/Button';
 import Toast from '../ui/Toast';
+
+function CopyField({ label, value }) {
+  const [copied, setCopied] = useState(false);
+
+  async function handleCopy() {
+    await navigator.clipboard.writeText(value);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
+
+  return (
+    <div className="flex items-start justify-between gap-2">
+      <div className="min-w-0">
+        <p className="text-[11px] text-gris">{label}</p>
+        <p className="font-medium text-negro truncate">{value}</p>
+      </div>
+      <button
+        type="button"
+        onClick={handleCopy}
+        className="mt-3 shrink-0 p-1.5 rounded-lg transition-colors cursor-pointer
+                   hover:bg-gris-border"
+        title="Copiar"
+      >
+        {copied ? (
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M3 8l3.5 3.5 6.5-7" stroke="#16A34A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        ) : (
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <rect x="5" y="5" width="8" height="9" rx="1.5" stroke="#6B7280" strokeWidth="1.5"/>
+            <path d="M3 11V3.5A1.5 1.5 0 0 1 4.5 2H11" stroke="#6B7280" strokeWidth="1.5" strokeLinecap="round"/>
+          </svg>
+        )}
+      </button>
+    </div>
+  );
+}
 
 const PAYMENT_METHODS = [
   {
@@ -69,7 +105,8 @@ export default function PaymentStep() {
   const setPaymentData = useOrderStore((s) => s.setPaymentData);
   const setCompletedOrder = useOrderStore((s) => s.setCompletedOrder);
   const nextStep = useOrderStore((s) => s.nextStep);
-  const prevStep = useOrderStore((s) => s.prevStep);
+  const setPaymentLoading = useOrderStore((s) => s.setPaymentLoading);
+  const setPaymentLoadingRates = useOrderStore((s) => s.setPaymentLoadingRates);
   const pokeTypes = useCatalogStore((s) => s.pokeTypes);
 
   const [rates, setRates] = useState(null);
@@ -86,6 +123,7 @@ export default function PaymentStep() {
   }, 0);
 
   useEffect(() => {
+    setPaymentLoadingRates(true);
     async function fetchRates() {
       try {
         const data = await getExchangeRates();
@@ -94,6 +132,7 @@ export default function PaymentStep() {
         setApiError('No se pudieron cargar las tasas de cambio');
       } finally {
         setLoadingRates(false);
+        setPaymentLoadingRates(false);
       }
     }
     fetchRates();
@@ -167,6 +206,7 @@ export default function PaymentStep() {
     }
 
     setLoading(true);
+    setPaymentLoading(true);
     setApiError('');
 
     try {
@@ -178,6 +218,7 @@ export default function PaymentStep() {
       setApiError(err.message || 'Error al crear el pedido');
     } finally {
       setLoading(false);
+      setPaymentLoading(false);
     }
   }
 
@@ -189,7 +230,7 @@ export default function PaymentStep() {
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -40 }}
       transition={{ duration: 0.3 }}
-      className="max-w-lg mx-auto px-4 py-8"
+      className="max-w-lg mx-auto px-4 py-8 pb-28"
     >
       <h2 className="text-2xl font-heading font-bold text-negro mb-2">
         Método de pago
@@ -224,7 +265,7 @@ export default function PaymentStep() {
         )}
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form id="payment-form" onSubmit={handleSubmit} className="space-y-6">
         {/* Payment method selector */}
         <div className="space-y-3">
           {PAYMENT_METHODS.map((method) => {
@@ -281,20 +322,11 @@ export default function PaymentStep() {
             className="space-y-4"
           >
             <div className="rounded-xl bg-gris-light/50 border border-gris-border p-4 space-y-2">
-              <p className="text-sm font-semibold text-negro mb-2">Datos para Pago Móvil</p>
-              <div className="grid grid-cols-2 gap-2 text-sm">
-                <div>
-                  <p className="text-[11px] text-gris">Teléfono</p>
-                  <p className="font-medium text-negro">0412-3925909</p>
-                </div>
-                <div>
-                  <p className="text-[11px] text-gris">Cédula</p>
-                  <p className="font-medium text-negro">V-25870475</p>
-                </div>
-                <div>
-                  <p className="text-[11px] text-gris">Banco</p>
-                  <p className="font-medium text-negro">Banesco</p>
-                </div>
+              <p className="text-sm font-semibold text-negro mb-3">Datos para Pago Móvil</p>
+              <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-sm">
+                <CopyField label="Teléfono" value="0412-3925909" />
+                <CopyField label="Cédula" value="V-25870475" />
+                <CopyField label="Banco" value="Banesco" />
                 <div>
                   <p className="text-[11px] text-gris">Monto</p>
                   <p className="font-bold text-naranja">{formatBs(amountBs)}</p>
@@ -359,10 +391,7 @@ export default function PaymentStep() {
                 )}
               </div>
               <div className="space-y-1.5 text-sm">
-                <div>
-                  <p className="text-[11px] text-gris">Correo Binance (Pay / P2P)</p>
-                  <p className="font-medium text-negro">jcodepod@gmail.com</p>
-                </div>
+                <CopyField label="Correo Binance (Pay / P2P)" value="jcodepod@gmail.com" />
                 <div>
                   <p className="text-[11px] text-gris">Monto USDT</p>
                   <p className="text-lg font-bold text-naranja">{formatUsd(amountUsd)}</p>
@@ -379,26 +408,6 @@ export default function PaymentStep() {
           </motion.div>
         )}
 
-        {/* Actions */}
-        <div className="flex gap-3 pt-2">
-          <Button
-            variant="ghost"
-            size="lg"
-            onClick={prevStep}
-            className="flex-1"
-          >
-            Volver
-          </Button>
-          <Button
-            type="submit"
-            size="lg"
-            className="flex-1"
-            loading={loading}
-            disabled={!paymentData.method || loadingRates}
-          >
-            Confirmar pedido
-          </Button>
-        </div>
       </form>
 
       <Toast

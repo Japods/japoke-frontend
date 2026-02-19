@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import useOrderStore from '../../store/useOrderStore';
 import Input from '../ui/Input';
-import Button from '../ui/Button';
 
 export default function CustomerForm() {
   const customer = useOrderStore((s) => s.customer);
@@ -53,14 +52,14 @@ export default function CustomerForm() {
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -40 }}
       transition={{ duration: 0.3 }}
-      className="max-w-lg mx-auto px-4 py-8"
+      className="max-w-lg mx-auto px-4 py-8 pb-28"
     >
       <h2 className="text-2xl font-heading font-bold text-negro mb-2">
         Tus datos
       </h2>
       <p className="text-gris mb-8">Para poder enviarte tu pedido</p>
 
-      <form onSubmit={handleSubmit} className="space-y-5">
+      <form id="customer-form" onSubmit={handleSubmit} className="space-y-5">
         <Input
           label="Nombre completo"
           name="name"
@@ -119,10 +118,8 @@ export default function CustomerForm() {
           multiline
         />
 
-        <Button type="submit" size="lg" className="w-full mt-4">
-          Continuar al pago
-        </Button>
       </form>
+
     </motion.div>
   );
 }

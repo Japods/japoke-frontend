@@ -2,7 +2,6 @@ import { useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import useOrderStore from '../../store/useOrderStore';
 import BuilderProgress from './BuilderProgress';
-import BottomSummary from '../layout/BottomSummary';
 import ProteinSelector from './ProteinSelector';
 import BaseSelector from './BaseSelector';
 import VegetableSelector from './VegetableSelector';
@@ -85,7 +84,7 @@ export default function BuilderStepper({ onBack }) {
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -40 }}
       transition={{ duration: 0.3 }}
-      className="max-w-lg mx-auto px-4 py-8 pb-44 sm:pb-8"
+      className="max-w-lg mx-auto px-4 py-8 pb-28"
     >
       <BuilderProgress currentStep={builderStep} />
 
@@ -103,16 +102,6 @@ export default function BuilderStepper({ onBack }) {
         </motion.div>
       </AnimatePresence>
 
-      {/* Mobile bottom bar with prev + next */}
-      <div className="sm:hidden">
-        <BottomSummary
-          onNext={isLast ? handleFinish : handleNext}
-          onPrev={handlePrev}
-          nextLabel={isLast ? 'Agregar al pedido' : 'Siguiente'}
-          disabled={!canGoNext}
-          showPrev={true}
-        />
-      </div>
     </motion.div>
   );
 }

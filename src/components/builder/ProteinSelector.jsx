@@ -11,12 +11,29 @@ export default function ProteinSelector({ onNext, onPrev }) {
   const currentBowl = useOrderStore((s) => s.currentBowl);
   const selectProtein = useOrderStore((s) => s.selectProtein);
   const toggleMixProtein = useOrderStore((s) => s.toggleMixProtein);
-  const { allowedProteinTiers, proteinGrams } = useBuilderRules();
+  const { pokeTypeName, proteinGrams } = useBuilderRules();
 
-  const proteins = getProteinsByTiers(allowedProteinTiers);
-  const selectedIds = currentBowl.proteins.map((p) => p.item);
+  // Premium solo muestra premium, Base solo muestra base
+  const tierFilter = pokeTypeName.toLowerCase() === 'premium' ? ['premium'] : ['base'];
+  const rawProteins = getProteinsByTiers(tierFilter);
+
+  // Expand items with preparationStyles into virtual entries
+  const proteins = rawProteins.flatMap((p) =>
+    p.preparationStyles?.length
+      ? p.preparationStyles.map((style) => ({
+          ...p,
+          _virtId: `${p._id}_${style.id}`,
+          name: style.label,
+          preparationStyle: style.id,
+        }))
+      : [{ ...p, _virtId: p._id, preparationStyle: null }]
+  );
+
+  const selectedVirtIds = currentBowl.proteins.map(
+    (p) => `${p.item}_${p.preparationStyle ?? ''}`
+  );
   const maxCount = currentBowl.isMixProtein ? 2 : 1;
-  const isComplete = selectedIds.length === maxCount;
+  const isComplete = selectedVirtIds.length === maxCount;
 
   const perPortionGrams = currentBowl.isMixProtein
     ? proteinGrams / 2
@@ -41,11 +58,14 @@ export default function ProteinSelector({ onNext, onPrev }) {
       <div className="grid grid-cols-2 gap-3 mt-4">
         {proteins.map((p) => (
           <IngredientCard
-            key={p._id}
+            key={p._virtId}
             name={p.name}
             tier={p.tier}
-            isSelected={selectedIds.includes(p._id)}
-            isDisabled={!selectedIds.includes(p._id) && selectedIds.length >= maxCount}
+            isSelected={selectedVirtIds.includes(`${p._id}_${p.preparationStyle ?? ''}`)}
+            isDisabled={
+              !selectedVirtIds.includes(`${p._id}_${p.preparationStyle ?? ''}`) &&
+              selectedVirtIds.length >= maxCount
+            }
             isSoldOut={isItemSoldOut(p)}
             onClick={() => selectProtein(p)}
           />
@@ -53,7 +73,7 @@ export default function ProteinSelector({ onNext, onPrev }) {
       </div>
 
       <div className="mt-4 text-sm text-gris">
-        {selectedIds.length} de {maxCount} seleccionada{maxCount > 1 ? 's' : ''}
+        {selectedVirtIds.length} de {maxCount} seleccionada{maxCount > 1 ? 's' : ''}
       </div>
 
       <BuilderNav

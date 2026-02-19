@@ -34,6 +34,10 @@ const useOrderStore = create(
       // Completed order
       completedOrder: null,
 
+      // Payment UI state (transient, for GlobalBottomBar)
+      paymentLoading: false,
+      paymentLoadingRates: true,
+
       // Navigation actions
       setStep: (step) => set({ step }),
       nextStep: () => set((s) => ({ step: s.step + 1 })),
@@ -47,6 +51,8 @@ const useOrderStore = create(
 
       // Payment actions
       setPaymentData: (paymentData) => set({ paymentData }),
+      setPaymentLoading: (paymentLoading) => set({ paymentLoading }),
+      setPaymentLoadingRates: (paymentLoadingRates) => set({ paymentLoadingRates }),
 
       // Poke type
       setPokeType: (pokeType) =>
@@ -58,26 +64,36 @@ const useOrderStore = create(
       selectProtein: (protein) =>
         set((s) => {
           const bowl = s.currentBowl;
-          const existing = bowl.proteins.find((p) => p.item === protein._id);
+          const virtId = `${protein._id}_${protein.preparationStyle ?? ''}`;
+          const existing = bowl.proteins.find(
+            (p) => `${p.item}_${p.preparationStyle ?? ''}` === virtId
+          );
+          const entry = {
+            item: protein._id,
+            name: protein.name,
+            preparationStyle: protein.preparationStyle ?? null,
+          };
           if (existing) {
             return {
               currentBowl: {
                 ...bowl,
-                proteins: bowl.proteins.filter((p) => p.item !== protein._id),
+                proteins: bowl.proteins.filter(
+                  (p) => `${p.item}_${p.preparationStyle ?? ''}` !== virtId
+                ),
               },
             };
           }
           const maxCount = bowl.isMixProtein ? 2 : 1;
           if (bowl.proteins.length >= maxCount) {
             const newProteins = bowl.isMixProtein
-              ? [bowl.proteins[1], { item: protein._id, name: protein.name }]
-              : [{ item: protein._id, name: protein.name }];
+              ? [bowl.proteins[1], entry]
+              : [entry];
             return { currentBowl: { ...bowl, proteins: newProteins } };
           }
           return {
             currentBowl: {
               ...bowl,
-              proteins: [...bowl.proteins, { item: protein._id, name: protein.name }],
+              proteins: [...bowl.proteins, entry],
             },
           };
         }),
@@ -298,6 +314,8 @@ const useOrderStore = create(
           editingBowlIndex: null,
           completedOrder: null,
           paymentData: { method: '', referenceId: '', referenceImageUrl: '' },
+          paymentLoading: false,
+          paymentLoadingRates: true,
         }),
     }),
     {

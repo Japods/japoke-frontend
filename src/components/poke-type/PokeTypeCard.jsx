@@ -7,7 +7,9 @@ export default function PokeTypeCard({ pokeType, isSelected, onSelect }) {
   const { name, basePrice, rules, allowedProteinTiers } = pokeType;
   const isPremium = name.toLowerCase() === 'premium';
   const getProteinsByTiers = useCatalogStore((s) => s.getProteinsByTiers);
-  const proteinNames = getProteinsByTiers(allowedProteinTiers).map((p) => p.name);
+  // Premium solo muestra premium, Base solo muestra base
+  const tierFilter = isPremium ? ['premium'] : ['base'];
+  const proteinNames = getProteinsByTiers(tierFilter).map((p) => p.name);
 
   return (
     <motion.button
@@ -59,9 +61,7 @@ export default function PokeTypeCard({ pokeType, isSelected, onSelect }) {
         <p>
           {rules.maxVegetables} vegetales • {rules.maxSauces} salsas • {rules.maxToppings} topping
         </p>
-        <p className="text-dorado font-medium mt-2">
-          Proteínas: {allowedProteinTiers.map((t) => t === 'premium' ? 'Premium' : 'Base').join(' + ')}
-        </p>
+        
       </div>
     </motion.button>
   );
