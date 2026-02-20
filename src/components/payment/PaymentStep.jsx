@@ -212,7 +212,10 @@ export default function PaymentStep() {
     setApiError('');
 
     try {
+      // Leer deliveryTime del store en el momento del submit (evita closure obsoleta)
+      const currentDeliveryTime = useOrderStore.getState().deliveryTime;
       const payload = buildPayload();
+      payload.deliveryTime = currentDeliveryTime || null;
       const order = await createOrder(payload);
       setCompletedOrder(order);
       nextStep();

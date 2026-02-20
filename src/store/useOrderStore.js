@@ -322,7 +322,10 @@ const useOrderStore = create(
     }),
     {
       name: 'japoke-order',
-      partialize: (state) => ({ customer: state.customer }),
+      partialize: (state) => ({
+        customer: state.customer,
+        deliveryTime: state.deliveryTime,
+      }),
     }
   )
 );
