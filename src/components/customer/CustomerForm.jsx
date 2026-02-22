@@ -3,15 +3,15 @@ import { motion } from 'framer-motion';
 import useOrderStore from '../../store/useOrderStore';
 import Input from '../ui/Input';
 
-// Genera los slots disponibles a partir de la hora actual (mínimo 12:00, máximo 21:00)
+// Genera los slots disponibles a partir de la hora actual (mínimo 12:00, máximo 23:00)
 function getAvailableSlots() {
   const now = new Date();
   const nowMinutes = now.getHours() * 60 + now.getMinutes();
 
   const slots = [];
-  for (let h = 12; h <= 21; h++) {
+  for (let h = 0; h <= 23; h++) {
     for (const m of [0, 30]) {
-      if (h === 21 && m === 30) continue;
+      if (h === 23 && m === 30) continue;
       const slotMinutes = h * 60 + m;
       if (slotMinutes > nowMinutes) {
         slots.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`);

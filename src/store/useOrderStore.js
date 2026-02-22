@@ -34,6 +34,16 @@ const useOrderStore = create(
         referenceImageUrl: '',
       },
 
+      // Split payment
+      splitPaymentData: {
+        method1: '',
+        amountBs1: '',
+        amountUsd1: '',
+        referenceId1: '',
+        method2: '',
+        referenceId2: '',
+      },
+
       // Completed order
       completedOrder: null,
 
@@ -54,6 +64,7 @@ const useOrderStore = create(
 
       // Payment actions
       setPaymentData: (paymentData) => set({ paymentData }),
+      setSplitPaymentData: (splitPaymentData) => set({ splitPaymentData }),
       setPaymentLoading: (paymentLoading) => set({ paymentLoading }),
       setPaymentLoadingRates: (paymentLoadingRates) => set({ paymentLoadingRates }),
 
@@ -316,6 +327,7 @@ const useOrderStore = create(
           editingBowlIndex: null,
           completedOrder: null,
           paymentData: { method: '', referenceId: '', referenceImageUrl: '' },
+          splitPaymentData: { method1: '', amountBs1: '', amountUsd1: '', referenceId1: '', method2: '', referenceId2: '' },
           paymentLoading: false,
           paymentLoadingRates: true,
         }),
