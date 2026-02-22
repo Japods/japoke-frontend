@@ -11,7 +11,6 @@ function getAvailableSlots() {
   const slots = [];
   for (let h = 0; h <= 23; h++) {
     for (const m of [0, 30]) {
-      if (h === 23 && m === 30) continue;
       const slotMinutes = h * 60 + m;
       if (slotMinutes > nowMinutes) {
         slots.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
