@@ -42,3 +42,8 @@ export async function getExchangeRates() {
   const res = await request('/exchange-rates/latest');
   return res.data;
 }
+
+export async function getStoreStatus() {
+  const res = await request('/store-status');
+  return res.data;
+}

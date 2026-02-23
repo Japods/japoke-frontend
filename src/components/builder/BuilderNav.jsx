@@ -9,7 +9,7 @@ export default function BuilderNav({
   isLast = false,
 }) {
   return (
-    <div className="hidden sm:flex gap-3 mt-8 pb-8">
+    <div className="hidden gap-3 mt-8 pb-8">
       {canGoBack && (
         <Button variant="ghost" size="md" onClick={onPrev} className="flex-1">
           ← Anterior
