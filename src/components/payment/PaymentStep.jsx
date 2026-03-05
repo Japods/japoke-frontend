@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import useOrderStore from '../../store/useOrderStore';
 import useCatalogStore from '../../store/useCatalogStore';
-import { createOrder, getExchangeRates } from '../../api/client';
+import { createOrder, getExchangeRates, getStoreStatus } from '../../api/client';
 import Input from '../ui/Input';
 import Toast from '../ui/Toast';
 
@@ -103,7 +103,7 @@ function PaymentDetails({ methodId, amountBs, amountUsd, discountPct, referenceV
         </div>
       </div>
       <Input
-        label="Número de referencia"
+        label="Número de referencia *"
         name={referenceName}
         value={referenceValue}
         onChange={onReferenceChange}
@@ -143,7 +143,7 @@ function PaymentDetails({ methodId, amountBs, amountUsd, discountPct, referenceV
         </div>
       </div>
       <Input
-        label="ID de transacción Binance"
+        label="ID de transacción Binance *"
         name={referenceName}
         value={referenceValue}
         onChange={onReferenceChange}
@@ -190,7 +190,7 @@ function SplitPaymentDetails({
         ? amountDisplay
         : <Input label="Monto en Bs" name={amountBsName} type="number" value={amountBsValue} onChange={onChange} placeholder="¿Cuánto pagas en Bs?" error={amountError} />
       }
-      <Input label="Número de referencia" name={referenceName} value={referenceValue} onChange={onChange} placeholder="Últimos 4 dígitos" />
+      <Input label="Número de referencia *" name={referenceName} value={referenceValue} onChange={onChange} placeholder="Últimos 4 dígitos" />
     </div>
   );
 
@@ -227,7 +227,7 @@ function SplitPaymentDetails({
         ? amountDisplay
         : <Input label="Monto en USDT" name={amountUsdName} type="number" value={amountUsdValue} onChange={onChange} placeholder="¿Cuánto pagas en USDT?" error={amountError} />
       }
-      <Input label="ID de transacción Binance" name={referenceName} value={referenceValue} onChange={onChange} placeholder="ID de la transacción" />
+      <Input label="ID de transacción Binance *" name={referenceName} value={referenceValue} onChange={onChange} placeholder="ID de la transacción" />
     </div>
   );
 
@@ -252,6 +252,7 @@ export default function PaymentStep() {
   const [loadingRates, setLoadingRates] = useState(true);
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState('');
+  const [maxDiscountCap, setMaxDiscountCap] = useState(15);
 
   const totalEur = bowls.reduce((sum, bowl) => {
     const pt = pokeTypes.find((p) => p._id === bowl.pokeType);
@@ -264,8 +265,14 @@ export default function PaymentStep() {
     setPaymentLoadingRates(true);
     async function fetchRates() {
       try {
-        const data = await getExchangeRates();
-        setRates(data);
+        const [ratesData, storeData] = await Promise.all([
+          getExchangeRates(),
+          getStoreStatus(),
+        ]);
+        setRates(ratesData);
+        if (storeData.maxDiscountPct != null) {
+          setMaxDiscountCap(storeData.maxDiscountPct);
+        }
       } catch {
         setApiError('No se pudieron cargar las tasas de cambio');
       } finally {
@@ -279,9 +286,11 @@ export default function PaymentStep() {
   const euroBcv = rates?.euro_bcv?.rate || 0;
   const dolarParalelo = rates?.dolar_paralelo?.rate || 0;
   const amountBs = euroBcv > 0 ? totalEur * euroBcv : 0;
-  const amountUsd = dolarParalelo > 0 ? amountBs / dolarParalelo : 0;
+  const rawAmountUsd = dolarParalelo > 0 ? amountBs / dolarParalelo : 0;
+  const minAmountUsd = totalEur * (1 - maxDiscountCap / 100);
+  const amountUsd = Math.max(rawAmountUsd, minAmountUsd);
   const discountPct = totalEur > 0 && amountUsd > 0
-    ? Math.round(((totalEur - amountUsd) / totalEur) * 100)
+    ? Math.min(Math.round(((totalEur - amountUsd) / totalEur) * 100), maxDiscountCap)
     : 0;
 
   const isSplitMode = paymentData.method === 'split';
@@ -446,6 +455,15 @@ export default function PaymentStep() {
       setApiError('Selecciona un método de pago');
       return;
     }
+    // Require reference for pago_movil and binance_usdt (single payment)
+    if (!isSplitMode && paymentData.method === 'pago_movil' && !paymentData.referenceId?.trim()) {
+      setApiError('Ingresa el número de referencia del Pago Móvil');
+      return;
+    }
+    if (!isSplitMode && paymentData.method === 'binance_usdt' && !paymentData.referenceId?.trim()) {
+      setApiError('Ingresa el ID de transacción de Binance');
+      return;
+    }
     if (isSplitMode && !splitPaymentData.method1) {
       setApiError('Selecciona el primer método de pago');
       return;
@@ -466,6 +484,15 @@ export default function PaymentStep() {
       const maxAmount = isUsd1 ? amountUsd : amountBs;
       if (amount1 > maxAmount) {
         setApiError(`El primer pago no puede superar el total (${isUsd1 ? formatUsd(amountUsd) : formatBs(amountBs)})`);
+        return;
+      }
+      // Require reference for pago_movil and binance in split mode
+      if ((splitPaymentData.method1 === 'pago_movil' || splitPaymentData.method1 === 'binance_usdt') && !splitPaymentData.referenceId1?.trim()) {
+        setApiError(`Ingresa la referencia del ${splitPaymentData.method1 === 'pago_movil' ? 'Pago Móvil' : 'Binance'} (pago 1)`);
+        return;
+      }
+      if ((splitPaymentData.method2 === 'pago_movil' || splitPaymentData.method2 === 'binance_usdt') && !splitPaymentData.referenceId2?.trim()) {
+        setApiError(`Ingresa la referencia del ${splitPaymentData.method2 === 'pago_movil' ? 'Pago Móvil' : 'Binance'} (pago 2)`);
         return;
       }
     }
@@ -500,29 +527,46 @@ export default function PaymentStep() {
       <h2 className="text-2xl font-heading font-bold text-negro mb-2">Método de pago</h2>
       <p className="text-gris mb-6">Selecciona cómo deseas pagar tu pedido</p>
 
-      {/* Total summary */}
-      <div className="rounded-2xl bg-dorado-light border border-dorado/20 p-5 mb-6">
-        <div className="flex justify-between items-center mb-3">
-          <span className="text-sm text-gris">Total del pedido</span>
-          <span className="text-2xl font-heading font-bold text-naranja">{formatEur(totalEur)}</span>
-        </div>
-        {!loadingRates && rates && (
-          <div className="space-y-1.5 pt-3 border-t border-dorado/20">
-            <div className="flex justify-between text-sm">
-              <span className="text-gris">En Bolívares</span>
-              <span className="font-semibold text-negro">{formatBs(amountBs)}</span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-gris">En USD</span>
-              <span className="font-semibold text-negro">{formatUsd(amountUsd)}</span>
-            </div>
-            <p className="text-[10px] text-gris pt-1 border-t border-dorado/10">Tasa EUR BCV: {euroBcv.toFixed(2)} Bs</p>
+      {/* Total summary - sticky so it stays visible on mobile */}
+      <div className="sticky top-14 z-40 -mx-4 px-4 pb-4 pt-2 bg-white/95 backdrop-blur-sm">
+        <div className="rounded-2xl bg-dorado-light border border-dorado/20 p-4">
+          <div className="flex justify-between items-center">
+            <span className="text-sm text-gris">Total del pedido</span>
+            <span className="text-2xl font-heading font-bold text-naranja">{formatEur(totalEur)}</span>
           </div>
-        )}
-        {loadingRates && <p className="text-xs text-gris text-center py-2">Cargando tasas...</p>}
+          {!loadingRates && rates && (
+            <div className="flex items-center gap-4 mt-2 pt-2 border-t border-dorado/20">
+              <div className="flex-1 text-center">
+                <p className="text-[10px] text-gris">En Bolívares</p>
+                <p className="font-heading font-bold text-negro">{formatBs(amountBs)}</p>
+              </div>
+              <div className="w-px h-8 bg-dorado/20" />
+              <div className="flex-1 text-center">
+                <p className="text-[10px] text-gris">En USD {discountPct > 0 && <span className="text-green-600 font-semibold">({discountPct}% OFF)</span>}</p>
+                <p className="font-heading font-bold text-negro">{formatUsd(amountUsd)}</p>
+              </div>
+            </div>
+          )}
+          {loadingRates && <p className="text-xs text-gris text-center py-2">Cargando tasas...</p>}
+        </div>
       </div>
 
       <form id="payment-form" onSubmit={handleSubmit} className="space-y-6">
+
+        {/* ── Single method details (shown above method selector) ── */}
+        {!isSplitMode && paymentData.method && (
+          <motion.div key={paymentData.method} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
+            <PaymentDetails
+              methodId={paymentData.method}
+              amountBs={amountBs}
+              amountUsd={amountUsd}
+              discountPct={discountPct}
+              referenceValue={paymentData.referenceId || ''}
+              onReferenceChange={handleChange}
+              referenceName="referenceId"
+            />
+          </motion.div>
+        )}
 
         {/* ── Mode selector: 3 single methods + split ── */}
         <div className="space-y-3">
@@ -565,7 +609,6 @@ export default function PaymentStep() {
               ${isSplitMode ? 'border-naranja bg-naranja/5 ring-2 ring-naranja/20' : 'border-gris-border hover:border-gris hover:bg-gris-light/30'}`}
           >
             <div className={`p-2.5 rounded-xl ${isSplitMode ? 'bg-naranja/10 text-naranja' : 'bg-gris-light text-gris'}`}>
-              {/* Split icon: two overlapping cards */}
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" />
               </svg>
@@ -581,21 +624,6 @@ export default function PaymentStep() {
             </div>
           </button>
         </div>
-
-        {/* ── Single method details ── */}
-        {!isSplitMode && paymentData.method && (
-          <motion.div key={paymentData.method} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
-            <PaymentDetails
-              methodId={paymentData.method}
-              amountBs={amountBs}
-              amountUsd={amountUsd}
-              discountPct={discountPct}
-              referenceValue={paymentData.referenceId || ''}
-              onReferenceChange={handleChange}
-              referenceName="referenceId"
-            />
-          </motion.div>
-        )}
 
         {/* ── Split mode: two payment panels ── */}
         {isSplitMode && (

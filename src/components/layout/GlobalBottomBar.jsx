@@ -9,6 +9,7 @@ export default function GlobalBottomBar() {
   const currentBowl = useOrderStore((s) => s.currentBowl);
   const bowls = useOrderStore((s) => s.bowls);
   const paymentData = useOrderStore((s) => s.paymentData);
+  const splitPaymentData = useOrderStore((s) => s.splitPaymentData);
   const paymentLoading = useOrderStore((s) => s.paymentLoading);
   const paymentLoadingRates = useOrderStore((s) => s.paymentLoadingRates);
   const nextStep = useOrderStore((s) => s.nextStep);
@@ -110,6 +111,18 @@ export default function GlobalBottomBar() {
 
   // --- Step 5: Pago ---
   if (step === 5) {
+    const needsRef = (method) => method === 'pago_movil' || method === 'binance_usdt';
+    const isSplit = paymentData.method === 'split';
+
+    let missingReference = false;
+    if (!isSplit && needsRef(paymentData.method) && !paymentData.referenceId?.trim()) {
+      missingReference = true;
+    }
+    if (isSplit) {
+      if (needsRef(splitPaymentData.method1) && !splitPaymentData.referenceId1?.trim()) missingReference = true;
+      if (needsRef(splitPaymentData.method2) && !splitPaymentData.referenceId2?.trim()) missingReference = true;
+    }
+
     return (
       <BottomBar>
         <SplitButtons
@@ -117,7 +130,7 @@ export default function GlobalBottomBar() {
           prevLabel="Volver"
           nextType="submit"
           nextForm="payment-form"
-          disabledNext={!paymentData.method || paymentLoadingRates || paymentLoading}
+          disabledNext={!paymentData.method || paymentLoadingRates || paymentLoading || missingReference}
           nextLabel={paymentLoading ? 'Confirmando...' : 'Confirmar pedido'}
         />
       </BottomBar>
