@@ -16,6 +16,7 @@ const useOrderStore = create(
         email: '',
         phone: '',
         address: '',
+        mapUrl: '',
         notes: '',
       },
 
