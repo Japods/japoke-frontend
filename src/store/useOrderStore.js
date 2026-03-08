@@ -93,6 +93,11 @@ const useOrderStore = create(
           selectedPromotion: null,
           promoItemIndexes: [],
           promoBowlsBuilt: 0,
+          bowls: [],
+          currentBowl: createEmptyBowl(),
+          editingBowlIndex: null,
+          step: 1,
+          builderStep: 0,
         }),
 
       setDiscountCode: (discountCode) => set({ discountCode }),

@@ -87,7 +87,7 @@ export default function PokeTypeSelector({ onNext }) {
       )}
 
       <h2 className="text-2xl font-heading font-bold text-negro mb-2">
-        {isPromoMode ? 'Elige tu poke' : 'Elige tu poke'}
+        Elige tu poke
       </h2>
       <p className="text-gris mb-8">
         {isPromoMode
@@ -95,26 +95,9 @@ export default function PokeTypeSelector({ onNext }) {
           : 'Selecciona el tipo de bowl que quieres armar'}
       </p>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {pokeTypes.map((pt) => {
-          // In promo mode, only show allowed poke types
-          if (isPromoMode && currentPromoPokeType && !isPokeTypeAllowedForPromoBowl(selectedPromotion, promoBowlsBuilt, pt._id)) {
-            return null;
-          }
-          return (
-            <PokeTypeCard
-              key={pt._id}
-              pokeType={pt}
-              isSelected={currentBowl.pokeType === pt._id}
-              onSelect={() => setPokeType(pt._id)}
-            />
-          );
-        })}
-      </div>
-
-      {/* Promotions section */}
+      {/* Promotions first */}
       {!isPromoMode && activePromos.length > 0 && (
-        <div className="mt-10">
+        <div className="mb-8">
           <h3 className="text-lg font-heading font-bold text-negro mb-2">
             Promociones
           </h3>
@@ -131,6 +114,26 @@ export default function PokeTypeSelector({ onNext }) {
           </div>
         </div>
       )}
+
+      {/* Poke types */}
+      {!isPromoMode && activePromos.length > 0 && (
+        <h3 className="text-lg font-heading font-bold text-negro mb-4">O arma tu bowl individual</h3>
+      )}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {pokeTypes.map((pt) => {
+          if (isPromoMode && currentPromoPokeType && !isPokeTypeAllowedForPromoBowl(selectedPromotion, promoBowlsBuilt, pt._id)) {
+            return null;
+          }
+          return (
+            <PokeTypeCard
+              key={pt._id}
+              pokeType={pt}
+              isSelected={currentBowl.pokeType === pt._id}
+              onSelect={() => setPokeType(pt._id)}
+            />
+          );
+        })}
+      </div>
     </motion.div>
   );
 }

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import useOrderStore from '../../store/useOrderStore';
 import useCatalogStore from '../../store/useCatalogStore';
+import usePriceCalculator from '../../hooks/usePriceCalculator';
 import { createOrder, getExchangeRates, getStoreStatus } from '../../api/client';
 import Input from '../ui/Input';
 import Toast from '../ui/Toast';
@@ -247,44 +248,13 @@ export default function PaymentStep() {
   const setPaymentLoading = useOrderStore((s) => s.setPaymentLoading);
   const setPaymentLoadingRates = useOrderStore((s) => s.setPaymentLoadingRates);
   const pokeTypes = useCatalogStore((s) => s.pokeTypes);
-  const selectedPromotion = useOrderStore((s) => s.selectedPromotion);
-  const promoItemIndexes = useOrderStore((s) => s.promoItemIndexes);
-  const discountCode = useOrderStore((s) => s.discountCode);
+  const { orderTotal: totalEur } = usePriceCalculator();
 
   const [rates, setRates] = useState(null);
   const [loadingRates, setLoadingRates] = useState(true);
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState('');
   const [maxDiscountCap, setMaxDiscountCap] = useState(15);
-
-  // Calculate totalEur accounting for promo and discount
-  const totalEur = (() => {
-    let subtotal = 0;
-    if (selectedPromotion && promoItemIndexes.length > 0) {
-      const promoExtras = promoItemIndexes.reduce((sum, idx) => {
-        if (bowls[idx]) return sum + bowls[idx].extras.reduce((s, e) => s + (e.extraPrice || 0) * e.quantity, 0);
-        return sum;
-      }, 0);
-      subtotal = selectedPromotion.promoPrice + promoExtras;
-      bowls.forEach((bowl, idx) => {
-        if (!promoItemIndexes.includes(idx)) {
-          const pt = pokeTypes.find((p) => p._id === bowl.pokeType);
-          subtotal += (pt?.basePrice || 0) + bowl.extras.reduce((s, e) => s + (e.extraPrice || 0) * e.quantity, 0);
-        }
-      });
-    } else {
-      subtotal = bowls.reduce((sum, bowl) => {
-        const pt = pokeTypes.find((p) => p._id === bowl.pokeType);
-        const base = pt?.basePrice || 0;
-        const extrasTotal = bowl.extras.reduce((s, e) => s + (e.extraPrice || 0) * e.quantity, 0);
-        return sum + base + extrasTotal;
-      }, 0);
-    }
-    if (discountCode && !selectedPromotion) {
-      subtotal -= subtotal * (discountCode.percentage / 100);
-    }
-    return subtotal;
-  })();
 
   useEffect(() => {
     setPaymentLoadingRates(true);
