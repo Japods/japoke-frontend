@@ -4,6 +4,7 @@ import { getCatalog } from '../api/client';
 const useCatalogStore = create((set, get) => ({
   pokeTypes: [],
   categories: [],
+  promotions: [],
   loading: false,
   error: null,
 
@@ -15,6 +16,7 @@ const useCatalogStore = create((set, get) => ({
       set({
         pokeTypes: data.pokeTypes,
         categories: data.categories,
+        promotions: data.promotions || [],
         loading: false,
       });
     } catch (err) {

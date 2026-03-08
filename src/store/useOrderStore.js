@@ -28,6 +28,12 @@ const useOrderStore = create(
       currentBowl: createEmptyBowl(),
       editingBowlIndex: null,
 
+      // Promotions & discount
+      selectedPromotion: null,
+      promoItemIndexes: [],
+      promoBowlsBuilt: 0,
+      discountCode: null, // { code, percentage }
+
       // Payment data
       paymentData: {
         method: '',
@@ -68,6 +74,28 @@ const useOrderStore = create(
       setSplitPaymentData: (splitPaymentData) => set({ splitPaymentData }),
       setPaymentLoading: (paymentLoading) => set({ paymentLoading }),
       setPaymentLoadingRates: (paymentLoadingRates) => set({ paymentLoadingRates }),
+
+      // Promotion actions
+      selectPromotion: (promo) =>
+        set({
+          selectedPromotion: promo,
+          promoItemIndexes: [],
+          promoBowlsBuilt: 0,
+          bowls: [],
+          currentBowl: createEmptyBowl(),
+          editingBowlIndex: null,
+          step: 1,
+          builderStep: 0,
+        }),
+
+      clearPromotion: () =>
+        set({
+          selectedPromotion: null,
+          promoItemIndexes: [],
+          promoBowlsBuilt: 0,
+        }),
+
+      setDiscountCode: (discountCode) => set({ discountCode }),
 
       // Poke type
       setPokeType: (pokeType) =>
@@ -278,7 +306,7 @@ const useOrderStore = create(
       // Bowl management
       addBowlToOrder: () =>
         set((s) => {
-          const { editingBowlIndex, currentBowl, bowls } = s;
+          const { editingBowlIndex, currentBowl, bowls, selectedPromotion, promoBowlsBuilt } = s;
           let newBowls;
           if (editingBowlIndex !== null) {
             newBowls = [...bowls];
@@ -286,6 +314,37 @@ const useOrderStore = create(
           } else {
             newBowls = [...bowls, currentBowl];
           }
+
+          // If we're in promo mode, track promo bowls
+          if (selectedPromotion && editingBowlIndex === null) {
+            const newBuilt = promoBowlsBuilt + 1;
+            const newIndex = newBowls.length - 1;
+            const newPromoIndexes = [...s.promoItemIndexes, newIndex];
+
+            // Still more promo bowls to build?
+            if (newBuilt < selectedPromotion.totalQuantity) {
+              return {
+                bowls: newBowls,
+                currentBowl: createEmptyBowl(),
+                editingBowlIndex: null,
+                promoBowlsBuilt: newBuilt,
+                promoItemIndexes: newPromoIndexes,
+                step: 1,
+                builderStep: 0,
+              };
+            }
+            // All promo bowls built
+            return {
+              bowls: newBowls,
+              currentBowl: createEmptyBowl(),
+              editingBowlIndex: null,
+              promoBowlsBuilt: newBuilt,
+              promoItemIndexes: newPromoIndexes,
+              step: 3,
+              builderStep: 0,
+            };
+          }
+
           return {
             bowls: newBowls,
             currentBowl: createEmptyBowl(),
@@ -304,9 +363,24 @@ const useOrderStore = create(
         })),
 
       removeBowl: (index) =>
-        set((s) => ({
-          bowls: s.bowls.filter((_, i) => i !== index),
-        })),
+        set((s) => {
+          const newBowls = s.bowls.filter((_, i) => i !== index);
+          // If removing a promo bowl, clear the whole promo
+          if (s.promoItemIndexes.includes(index)) {
+            return {
+              bowls: newBowls,
+              selectedPromotion: null,
+              promoItemIndexes: [],
+              promoBowlsBuilt: 0,
+              discountCode: null,
+            };
+          }
+          // Re-index promo items after removal
+          const newPromoIndexes = s.promoItemIndexes
+            .map((i) => (i > index ? i - 1 : i))
+            .filter((i) => i >= 0);
+          return { bowls: newBowls, promoItemIndexes: newPromoIndexes };
+        }),
 
       addAnotherBowl: () =>
         set({
@@ -327,6 +401,10 @@ const useOrderStore = create(
           currentBowl: createEmptyBowl(),
           editingBowlIndex: null,
           completedOrder: null,
+          selectedPromotion: null,
+          promoItemIndexes: [],
+          promoBowlsBuilt: 0,
+          discountCode: null,
           paymentData: { method: '', referenceId: '', referenceImageUrl: '' },
           splitPaymentData: { method1: '', amountBs1: '', amountUsd1: '', referenceId1: '', method2: '', referenceId2: '' },
           paymentLoading: false,

@@ -11,6 +11,7 @@ export default function ProteinSelector({ onNext, onPrev }) {
   const currentBowl = useOrderStore((s) => s.currentBowl);
   const selectProtein = useOrderStore((s) => s.selectProtein);
   const toggleMixProtein = useOrderStore((s) => s.toggleMixProtein);
+  const selectedPromotion = useOrderStore((s) => s.selectedPromotion);
   const { pokeTypeName, proteinGrams } = useBuilderRules();
 
   // Premium: solo premium en individual, ambas tiers en 50/50; Base: siempre solo base
@@ -20,7 +21,13 @@ export default function ProteinSelector({ onNext, onPrev }) {
         ? ['premium', 'base']
         : ['premium']
       : ['base'];
-  const rawProteins = getProteinsByTiers(tierFilter);
+  let rawProteins = getProteinsByTiers(tierFilter);
+
+  // In promo mode, filter to only allowed proteins if specified
+  if (selectedPromotion?.allowedProteins?.length > 0) {
+    const allowedIds = selectedPromotion.allowedProteins.map((p) => p._id || p);
+    rawProteins = rawProteins.filter((p) => allowedIds.includes(p._id));
+  }
 
   // Expand items with preparationStyles into virtual entries
   const proteins = rawProteins.flatMap((p) =>

@@ -47,3 +47,8 @@ export async function getStoreStatus() {
   const res = await request('/store-status');
   return res.data;
 }
+
+export async function validateDiscountCode(code) {
+  const res = await request(`/orders/discount-codes/validate?code=${encodeURIComponent(code)}`);
+  return res.data;
+}

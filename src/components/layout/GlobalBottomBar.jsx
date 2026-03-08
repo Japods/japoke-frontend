@@ -19,6 +19,9 @@ export default function GlobalBottomBar() {
   const setBuilderStep = useOrderStore((s) => s.setBuilderStep);
   const addBowlToOrder = useOrderStore((s) => s.addBowlToOrder);
 
+  const selectedPromotion = useOrderStore((s) => s.selectedPromotion);
+  const promoBowlsBuilt = useOrderStore((s) => s.promoBowlsBuilt);
+  const clearPromotion = useOrderStore((s) => s.clearPromotion);
   const { currentBowlPrice, currentExtrasTotal } = usePriceCalculator();
   const { basePrice } = useBuilderRules();
 
@@ -27,11 +30,27 @@ export default function GlobalBottomBar() {
 
   // --- Step 1: Tipo de Poke ---
   if (step === 1) {
+    const isPromoMode = !!selectedPromotion;
     return (
       <BottomBar>
-        <FullButton onClick={nextStep} disabled={!currentBowl.pokeType}>
-          Armar mi bowl
-        </FullButton>
+        {isPromoMode ? (
+          <div className="space-y-2">
+            <FullButton onClick={nextStep} disabled={!currentBowl.pokeType}>
+              Armar bowl {promoBowlsBuilt + 1} de {selectedPromotion.totalQuantity}
+            </FullButton>
+            <button
+              type="button"
+              onClick={clearPromotion}
+              className="w-full text-center text-xs text-gris hover:text-error transition-colors cursor-pointer py-1"
+            >
+              Cancelar promoción
+            </button>
+          </div>
+        ) : (
+          <FullButton onClick={nextStep} disabled={!currentBowl.pokeType}>
+            Armar mi bowl
+          </FullButton>
+        )}
       </BottomBar>
     );
   }
