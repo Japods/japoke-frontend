@@ -17,7 +17,7 @@ const B = [
   '/images/bowl-salmon-kani.jpeg',
 ];
 
-function FloatingBowl({ src, delay, x, y, size, duration = 20 }) {
+function FloatingBowl({ src, delay, x, y, size, duration = 20, reverse = false }) {
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.4 }}
@@ -30,7 +30,7 @@ function FloatingBowl({ src, delay, x, y, size, duration = 20 }) {
         src={src}
         alt="Poke bowl"
         className="w-full h-full object-cover"
-        animate={{ rotate: 360 }}
+        animate={{ rotate: reverse ? -360 : 360 }}
         transition={{ duration, repeat: Infinity, ease: 'linear' }}
       />
     </motion.div>
@@ -38,7 +38,7 @@ function FloatingBowl({ src, delay, x, y, size, duration = 20 }) {
 }
 
 // Corner bowls: cut in half by the edges
-function CornerBowl({ src, delay, x, y, size, duration = 18 }) {
+function CornerBowl({ src, delay, x, y, size, duration = 18, reverse = false }) {
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -51,7 +51,7 @@ function CornerBowl({ src, delay, x, y, size, duration = 18 }) {
         src={src}
         alt="Poke bowl"
         className="w-full h-full object-cover"
-        animate={{ rotate: 360 }}
+        animate={{ rotate: reverse ? -360 : 360 }}
         transition={{ duration, repeat: Infinity, ease: 'linear' }}
       />
     </motion.div>
@@ -66,22 +66,22 @@ export default function Hero({ onStart }) {
       <div className="hidden sm:block">
         {/* Corner bowls — cut by edges */}
         <CornerBowl src={B[5]} delay={0.1} x="-80px" y="-80px" size={260} duration={30} />
-        <CornerBowl src={B[8]} delay={0.2} x="calc(100% - 140px)" y="-60px" size={240} duration={35} />
-        <CornerBowl src={B[11]} delay={0.3} x="-70px" y="calc(100% - 160px)" size={250} duration={28} />
+        <CornerBowl src={B[8]} delay={0.2} x="calc(100% - 140px)" y="-60px" size={240} duration={35} reverse />
+        <CornerBowl src={B[11]} delay={0.3} x="-70px" y="calc(100% - 160px)" size={250} duration={28} reverse />
         <CornerBowl src={B[9]} delay={0.4} x="calc(100% - 120px)" y="calc(100% - 140px)" size={230} duration={32} />
 
         {/* Left side bowls */}
-        <FloatingBowl src={B[0]} delay={0.3} x="2%" y="28%" size={180} duration={25} />
+        <FloatingBowl src={B[0]} delay={0.3} x="2%" y="28%" size={180} duration={25} reverse />
         <FloatingBowl src={B[2]} delay={0.5} x="8%" y="58%" size={150} duration={22} />
 
         {/* Right side bowls */}
         <FloatingBowl src={B[12]} delay={0.4} x="80%" y="26%" size={170} duration={23} />
-        <FloatingBowl src={B[3]} delay={0.6} x="82%" y="56%" size={155} duration={27} />
+        <FloatingBowl src={B[3]} delay={0.6} x="82%" y="56%" size={155} duration={27} reverse />
 
         {/* Mid-level accent bowls */}
         <FloatingBowl src={B[6]} delay={0.7} x="18%" y="14%" size={110} duration={20} />
-        <FloatingBowl src={B[7]} delay={0.8} x="72%" y="12%" size={105} duration={24} />
-        <FloatingBowl src={B[1]} delay={0.9} x="16%" y="82%" size={100} duration={21} />
+        <FloatingBowl src={B[7]} delay={0.8} x="72%" y="12%" size={105} duration={24} reverse />
+        <FloatingBowl src={B[1]} delay={0.9} x="16%" y="82%" size={100} duration={21} reverse />
         <FloatingBowl src={B[4]} delay={1.0} x="74%" y="84%" size={95} duration={26} />
       </div>
 
@@ -89,17 +89,17 @@ export default function Hero({ onStart }) {
       <div className="sm:hidden">
         {/* Corner bowls — cut by edges */}
         <CornerBowl src={B[5]} delay={0.1} x="-70px" y="-70px" size={200} duration={28} />
-        <CornerBowl src={B[12]} delay={0.2} x="calc(100% - 90px)" y="-50px" size={180} duration={32} />
-        <CornerBowl src={B[8]} delay={0.3} x="-60px" y="calc(100% - 110px)" size={190} duration={25} />
+        <CornerBowl src={B[12]} delay={0.2} x="calc(100% - 90px)" y="-50px" size={180} duration={32} reverse />
+        <CornerBowl src={B[8]} delay={0.3} x="-60px" y="calc(100% - 110px)" size={190} duration={25} reverse />
         <CornerBowl src={B[4]} delay={0.4} x="calc(100% - 80px)" y="calc(100% - 90px)" size={180} duration={30} />
 
         {/* Side bowls */}
-        <FloatingBowl src={B[0]} delay={0.4} x="-8%" y="30%" size={130} duration={22} />
+        <FloatingBowl src={B[0]} delay={0.4} x="-8%" y="30%" size={130} duration={22} reverse />
         <FloatingBowl src={B[3]} delay={0.5} x="74%" y="28%" size={125} duration={25} />
 
         {/* Small accents */}
         <FloatingBowl src={B[6]} delay={0.8} x="20%" y="8%" size={80} duration={18} />
-        <FloatingBowl src={B[1]} delay={0.9} x="65%" y="88%" size={75} duration={21} />
+        <FloatingBowl src={B[1]} delay={0.9} x="65%" y="88%" size={75} duration={21} reverse />
       </div>
 
       {/* ═══ CENTER CONTENT ═══ */}
