@@ -103,11 +103,15 @@ const useOrderStore = create(
 
       setDiscountCode: (discountCode) => set({ discountCode }),
 
-      // Poke type
+      // Poke type — reset bowl when changing type
       setPokeType: (pokeType) =>
-        set((s) => ({
-          currentBowl: { ...s.currentBowl, pokeType },
-        })),
+        set((s) => {
+          if (s.currentBowl.pokeType === pokeType) return {};
+          return {
+            currentBowl: { ...createEmptyBowl(), pokeType },
+            builderStep: 0,
+          };
+        }),
 
       // Protein actions
       selectProtein: (protein) =>

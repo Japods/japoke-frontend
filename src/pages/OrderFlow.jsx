@@ -16,6 +16,12 @@ export default function OrderFlow() {
   const nextStep = useOrderStore((s) => s.nextStep);
   const prevStep = useOrderStore((s) => s.prevStep);
   const setBuilderStep = useOrderStore((s) => s.setBuilderStep);
+  const resetOrder = useOrderStore((s) => s.resetOrder);
+
+  function handleStart() {
+    resetOrder();
+    nextStep();
+  }
   const { loading, error } = useCatalog();
 
   useEffect(() => {
@@ -53,7 +59,7 @@ export default function OrderFlow() {
   return (
     <AnimatePresence mode="wait">
       {step === 0 && (
-        <Hero key="hero" onStart={nextStep} />
+        <Hero key="hero" onStart={handleStart} />
       )}
       {step === 1 && (
         <PokeTypeSelector key="poke-type" onNext={nextStep} />
