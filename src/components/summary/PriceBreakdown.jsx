@@ -3,7 +3,7 @@ import useOrderStore from '../../store/useOrderStore';
 import { formatCurrency } from '../../lib/formatters';
 
 export default function PriceBreakdown() {
-  const { bowlsPrices, orderTotal, promoSavings, discountAmount, subtotal } = usePriceCalculator();
+  const { bowlsPrices, orderTotal, promoSavings, discountAmount, addOnsTotal, subtotal } = usePriceCalculator();
   const selectedPromotion = useOrderStore((s) => s.selectedPromotion);
   const promoItemIndexes = useOrderStore((s) => s.promoItemIndexes);
   const discountCode = useOrderStore((s) => s.discountCode);
@@ -23,6 +23,13 @@ export default function PriceBreakdown() {
           <span className="text-negro font-medium">{formatCurrency(price)}</span>
         </div>
       ))}
+
+      {addOnsTotal > 0 && (
+        <div className="flex justify-between text-sm">
+          <span className="text-gris">Complementos</span>
+          <span className="text-negro font-medium">{formatCurrency(addOnsTotal)}</span>
+        </div>
+      )}
 
       {/* Promo savings */}
       {selectedPromotion && promoSavings > 0 && (

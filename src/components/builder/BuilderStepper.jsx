@@ -7,6 +7,7 @@ import BaseSelector from './BaseSelector';
 import VegetableSelector from './VegetableSelector';
 import SauceSelector from './SauceSelector';
 import ToppingSelector from './ToppingSelector';
+import FruitSelector from './FruitSelector';
 import ExtrasSelector from './ExtrasSelector';
 
 const slideVariants = {
@@ -71,12 +72,13 @@ export default function BuilderStepper({ onBack }) {
     <ProteinSelector onNext={handleNext} onPrev={handlePrev} />,
     <BaseSelector onNext={handleNext} onPrev={handlePrev} />,
     <VegetableSelector onNext={handleNext} onPrev={handlePrev} />,
+    <FruitSelector onNext={handleNext} onPrev={handlePrev} />,
     <SauceSelector onNext={handleNext} onPrev={handlePrev} />,
     <ToppingSelector onNext={handleNext} onPrev={handlePrev} />,
     <ExtrasSelector onFinish={handleFinish} onPrev={handlePrev} />,
   ];
 
-  const isLast = builderStep === 5;
+  const isLast = builderStep === 6;
 
   return (
     <motion.div

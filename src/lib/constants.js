@@ -11,9 +11,10 @@ export const BUILDER_STEPS = [
   { id: 0, key: 'protein', label: 'Proteína' },
   { id: 1, key: 'base', label: 'Base' },
   { id: 2, key: 'vegetable', label: 'Vegetales' },
-  { id: 3, key: 'sauce', label: 'Salsas' },
-  { id: 4, key: 'topping', label: 'Toppings' },
-  { id: 5, key: 'extras', label: 'Extras' },
+  { id: 3, key: 'fruit', label: 'Frutas' },
+  { id: 4, key: 'sauce', label: 'Salsas' },
+  { id: 5, key: 'topping', label: 'Toppings' },
+  { id: 6, key: 'extras', label: 'Extras' },
 ];
 
 export const CATEGORY_TYPE_MAP = {
@@ -23,6 +24,7 @@ export const CATEGORY_TYPE_MAP = {
   vegetable: 'vegetable',
   sauce: 'sauce',
   topping: 'topping',
+  fruit: 'fruit',
 };
 
 export function createEmptyBowl() {
@@ -33,6 +35,7 @@ export function createEmptyBowl() {
     bases: [],
     isMixBase: false,
     vegetables: [],
+    fruits: [],
     sauces: [],
     toppings: [],
     extras: [],

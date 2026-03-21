@@ -1,9 +1,12 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import useOrderStore from '../../store/useOrderStore';
+import useCatalogStore from '../../store/useCatalogStore';
 import { validateDiscountCode } from '../../api/client';
 import BowlDetail from './BowlDetail';
 import PriceBreakdown from './PriceBreakdown';
+import Counter from '../ui/Counter';
+import { formatCurrency } from '../../lib/formatters';
 
 export default function OrderSummary() {
   const bowls = useOrderStore((s) => s.bowls);
@@ -13,6 +16,14 @@ export default function OrderSummary() {
   const selectedPromotion = useOrderStore((s) => s.selectedPromotion);
   const discountCode = useOrderStore((s) => s.discountCode);
   const setDiscountCode = useOrderStore((s) => s.setDiscountCode);
+  const addOns = useOrderStore((s) => s.addOns);
+  const addAddOn = useOrderStore((s) => s.addAddOn);
+  const removeAddOn = useOrderStore((s) => s.removeAddOn);
+  const categories = useCatalogStore((s) => s.categories);
+
+  const addOnItems = categories
+    .filter((cat) => cat.type === 'beverage' || cat.type === 'dessert')
+    .flatMap((cat) => cat.items.filter((item) => item.isAvailable !== false));
 
   const [codeInput, setCodeInput] = useState('');
   const [codeLoading, setCodeLoading] = useState(false);
@@ -85,6 +96,47 @@ export default function OrderSummary() {
       >
         + Agregar otro bowl
       </button>
+
+      {/* Complementos */}
+      {addOnItems.length > 0 && (
+        <div className="mb-6">
+          <h3 className="text-base font-heading font-bold text-negro mb-3">
+            ¿Quieres agregar algo más?
+          </h3>
+          <div className="space-y-2">
+            {addOnItems.map((item) => {
+              const current = addOns.find((a) => a.item === item._id);
+              const qty = current ? current.quantity : 0;
+
+              return (
+                <div
+                  key={item._id}
+                  className={`flex items-center justify-between p-3 rounded-xl border transition-colors ${
+                    qty > 0
+                      ? 'border-naranja/30 bg-naranja-light'
+                      : 'border-gris-border bg-white'
+                  }`}
+                >
+                  <div className="flex-1 min-w-0 mr-3">
+                    <p className="font-medium text-sm text-negro">{item.name}</p>
+                    {item.portionSize > 0 && (
+                      <p className="text-xs text-gris">{item.portionSize}g</p>
+                    )}
+                    <span className="text-xs font-semibold text-naranja">
+                      {formatCurrency(item.extraPrice)}
+                    </span>
+                  </div>
+                  <Counter
+                    value={qty}
+                    onIncrement={() => addAddOn(item)}
+                    onDecrement={() => removeAddOn(item._id)}
+                  />
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Discount code - only if no promo */}
       {!selectedPromotion && (

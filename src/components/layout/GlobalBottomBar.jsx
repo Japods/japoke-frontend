@@ -18,6 +18,7 @@ export default function GlobalBottomBar() {
   const prevBuilderStep = useOrderStore((s) => s.prevBuilderStep);
   const setBuilderStep = useOrderStore((s) => s.setBuilderStep);
   const addBowlToOrder = useOrderStore((s) => s.addBowlToOrder);
+  const editBowl = useOrderStore((s) => s.editBowl);
 
   const selectedPromotion = useOrderStore((s) => s.selectedPromotion);
   const promoBowlsBuilt = useOrderStore((s) => s.promoBowlsBuilt);
@@ -57,7 +58,7 @@ export default function GlobalBottomBar() {
 
   // --- Step 2: Builder ---
   if (step === 2) {
-    const isLast = builderStep === 5;
+    const isLast = builderStep === 6;
 
     const canGoNext = (() => {
       if (builderStep === 0) {
@@ -102,10 +103,18 @@ export default function GlobalBottomBar() {
 
   // --- Step 3: Resumen ---
   if (step === 3) {
+    function handleBackToLastBowl() {
+      const lastIndex = bowls.length - 1;
+      if (lastIndex >= 0) {
+        editBowl(lastIndex);
+        setBuilderStep(6);
+      }
+    }
+
     return (
       <BottomBar>
         <SplitButtons
-          onPrev={prevStep}
+          onPrev={bowls.length > 0 ? handleBackToLastBowl : undefined}
           onNext={nextStep}
           disabledNext={bowls.length === 0}
           nextLabel="Continuar"

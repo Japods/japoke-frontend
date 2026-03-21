@@ -25,6 +25,7 @@ const useOrderStore = create(
 
       // Order
       bowls: [],
+      addOns: [],
       currentBowl: createEmptyBowl(),
       editingBowlIndex: null,
 
@@ -217,6 +218,27 @@ const useOrderStore = create(
           };
         }),
 
+      toggleFruit: (item, max) =>
+        set((s) => {
+          const bowl = s.currentBowl;
+          const exists = bowl.fruits.find((f) => f.item === item._id);
+          if (exists) {
+            return {
+              currentBowl: {
+                ...bowl,
+                fruits: bowl.fruits.filter((f) => f.item !== item._id),
+              },
+            };
+          }
+          if (bowl.fruits.length >= max) return {};
+          return {
+            currentBowl: {
+              ...bowl,
+              fruits: [...bowl.fruits, { item: item._id, name: item.name }],
+            },
+          };
+        }),
+
       toggleSauce: (item, max) =>
         set((s) => {
           const bowl = s.currentBowl;
@@ -305,6 +327,36 @@ const useOrderStore = create(
                 e.item === itemId ? { ...e, quantity: e.quantity - 1 } : e
               ),
             },
+          };
+        }),
+
+      // Add-ons (beverages, desserts)
+      addAddOn: (item) =>
+        set((s) => {
+          const existing = s.addOns.find((a) => a.item === item._id);
+          if (existing) {
+            return {
+              addOns: s.addOns.map((a) =>
+                a.item === item._id ? { ...a, quantity: a.quantity + 1 } : a
+              ),
+            };
+          }
+          return {
+            addOns: [...s.addOns, { item: item._id, name: item.name, extraPrice: item.extraPrice, quantity: 1 }],
+          };
+        }),
+
+      removeAddOn: (itemId) =>
+        set((s) => {
+          const existing = s.addOns.find((a) => a.item === itemId);
+          if (!existing) return {};
+          if (existing.quantity <= 1) {
+            return { addOns: s.addOns.filter((a) => a.item !== itemId) };
+          }
+          return {
+            addOns: s.addOns.map((a) =>
+              a.item === itemId ? { ...a, quantity: a.quantity - 1 } : a
+            ),
           };
         }),
 
@@ -403,6 +455,7 @@ const useOrderStore = create(
           step: 0,
           builderStep: 0,
           bowls: [],
+          addOns: [],
           currentBowl: createEmptyBowl(),
           editingBowlIndex: null,
           completedOrder: null,

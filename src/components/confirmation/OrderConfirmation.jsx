@@ -148,6 +148,12 @@ export default function OrderConfirmation() {
                     {item.vegetables.map((v) => v.name).join(', ')}
                   </p>
                 )}
+                {item.fruits?.length > 0 && (
+                  <p>
+                    <span className="text-negro font-medium">Frutas:</span>{' '}
+                    {item.fruits.map((f) => f.name).join(', ')}
+                  </p>
+                )}
                 {item.sauces?.length > 0 && (
                   <p>
                     <span className="text-negro font-medium">Salsas:</span>{' '}
@@ -170,6 +176,20 @@ export default function OrderConfirmation() {
             </div>
           ))}
         </div>
+
+          {completedOrder.addOns?.length > 0 && (
+              <div className="mt-4 pt-3 border-t border-gris-border">
+                <p className="text-sm font-semibold text-negro mb-2">Complementos</p>
+                {completedOrder.addOns.map((addOn, i) => (
+                  <div key={i} className="flex justify-between text-sm py-1">
+                    <span className="text-gris">
+                      {addOn.name} {addOn.quantity > 1 && `x${addOn.quantity}`}
+                    </span>
+                    <span className="text-negro font-medium">{formatCurrency(addOn.subtotal)}</span>
+                  </div>
+                ))}
+              </div>
+            )}
       </motion.div>
 
       {/* Price breakdown */}

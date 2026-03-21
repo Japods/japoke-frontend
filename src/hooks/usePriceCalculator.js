@@ -8,6 +8,7 @@ export default function usePriceCalculator() {
   const selectedPromotion = useOrderStore((s) => s.selectedPromotion);
   const promoItemIndexes = useOrderStore((s) => s.promoItemIndexes);
   const discountCode = useOrderStore((s) => s.discountCode);
+  const addOns = useOrderStore((s) => s.addOns);
 
   function getBowlPrice(bowl) {
     const pt = pokeTypes.find((p) => p._id === bowl.pokeType);
@@ -66,7 +67,12 @@ export default function usePriceCalculator() {
     discountAmount = subtotal * (discountCode.percentage / 100);
   }
 
-  const orderTotal = subtotal - discountAmount;
+  const addOnsTotal = addOns.reduce(
+    (sum, a) => sum + (a.extraPrice || 0) * (a.quantity || 1),
+    0
+  );
+
+  const orderTotal = subtotal - discountAmount + addOnsTotal;
   const bowlsPrices = bowls.map(getBowlPrice);
 
   const basePrice = (() => {
@@ -82,6 +88,7 @@ export default function usePriceCalculator() {
     subtotal,
     promoSavings,
     discountAmount,
+    addOnsTotal,
     orderTotal,
     getBowlPrice,
   };

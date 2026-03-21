@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import useCatalogStore from '../../store/useCatalogStore';
 import useOrderStore from '../../store/useOrderStore';
 import useBuilderRules from '../../hooks/useBuilderRules';
@@ -13,8 +14,18 @@ export default function BaseSelector({ onNext, onPrev }) {
   const toggleMixBase = useOrderStore((s) => s.toggleMixBase);
   const { baseGrams } = useBuilderRules();
 
-  const bases = getItemsByType('base');
+  const bases = getItemsByType('base').filter((b) => !b.extraOnly);
+  const availableBases = bases.filter((b) => !isItemSoldOut(b));
   const selectedIds = currentBowl.bases.map((b) => b.item);
+
+  // Auto-select all when mix is on and available options === maxCount
+  useEffect(() => {
+    if (currentBowl.isMixBase && availableBases.length === 2 && selectedIds.length === 0) {
+      for (const b of availableBases) {
+        selectBase(b);
+      }
+    }
+  }, [currentBowl.isMixBase]);
   const maxCount = currentBowl.isMixBase ? 2 : 1;
   const isComplete = selectedIds.length === maxCount;
 

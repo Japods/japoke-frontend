@@ -59,6 +59,9 @@ export default function BowlDetail({ bowl, index, onEdit, onRemove }) {
               {bowl.vegetables.length > 0 && (
                 <DetailRow label="Vegetales" value={bowl.vegetables.map((v) => v.name).join(', ')} />
               )}
+              {bowl.fruits.length > 0 && (
+                <DetailRow label="Frutas" value={bowl.fruits.map((f) => f.name).join(', ')} />
+              )}
               {bowl.sauces.length > 0 && (
                 <DetailRow label="Salsas" value={bowl.sauces.map((s) => s.name).join(', ')} />
               )}

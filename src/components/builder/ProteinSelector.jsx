@@ -21,7 +21,7 @@ export default function ProteinSelector({ onNext, onPrev }) {
         ? ['premium', 'base']
         : ['premium']
       : ['base'];
-  let rawProteins = getProteinsByTiers(tierFilter);
+  let rawProteins = getProteinsByTiers(tierFilter).filter((p) => !p.extraOnly);
 
   // In promo mode, filter to only allowed proteins if specified
   if (selectedPromotion?.allowedProteins?.length > 0) {

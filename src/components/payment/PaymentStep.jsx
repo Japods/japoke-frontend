@@ -387,6 +387,7 @@ export default function PaymentStep() {
           proteins: bowl.proteins.map((p) => ({ item: p.item, quantity: proteinGrams, preparationStyle: p.preparationStyle || null })),
           bases: bowl.bases.map((b) => ({ item: b.item, quantity: baseGrams })),
           vegetables: bowl.vegetables.map((v) => ({ item: v.item })),
+          fruits: bowl.fruits.map((f) => ({ item: f.item })),
           sauces: bowl.sauces.map((s) => ({ item: s.item })),
           toppings: bowl.toppings.map((t) => ({ item: t.item })),
         },
@@ -397,6 +398,7 @@ export default function PaymentStep() {
     const customer = useOrderStore.getState().customer;
     const currentDeliveryTime = useOrderStore.getState().deliveryTime;
 
+    const currentAddOns = useOrderStore.getState().addOns;
     const currentPromotion = useOrderStore.getState().selectedPromotion;
     const currentPromoIndexes = useOrderStore.getState().promoItemIndexes;
     const currentDiscountCode = useOrderStore.getState().discountCode;
@@ -412,6 +414,7 @@ export default function PaymentStep() {
         notes: customer.notes || '',
       },
       items,
+      addOns: currentAddOns.map((a) => ({ item: a.item, quantity: a.quantity })),
       deliveryTime: currentDeliveryTime || null,
       ...(currentPromotion ? { promotionId: currentPromotion._id, promoItemIndexes: currentPromoIndexes } : {}),
       ...(currentDiscountCode && !currentPromotion ? { discountCode: currentDiscountCode.code } : {}),

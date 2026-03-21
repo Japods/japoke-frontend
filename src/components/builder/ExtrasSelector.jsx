@@ -17,6 +17,7 @@ export default function ExtrasSelector({ onFinish, onPrev }) {
   // Build available extras from all categories
   const extraItems = [];
   for (const cat of categories) {
+    if (cat.type === 'beverage' || cat.type === 'dessert') continue;
     for (const item of cat.items) {
       if (item.extraPrice > 0) {
         extraItems.push({

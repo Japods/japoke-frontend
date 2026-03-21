@@ -11,7 +11,7 @@ export default function SauceSelector({ onNext, onPrev }) {
   const toggleSauce = useOrderStore((s) => s.toggleSauce);
   const { maxSauces } = useBuilderRules();
 
-  const sauces = getItemsByType('sauce');
+  const sauces = getItemsByType('sauce').filter((s) => !s.extraOnly);
   const selectedIds = currentBowl.sauces.map((s) => s.item);
   const atMax = selectedIds.length >= maxSauces;
 
