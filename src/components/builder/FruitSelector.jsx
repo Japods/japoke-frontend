@@ -28,18 +28,26 @@ export default function FruitSelector({ onNext, onPrev }) {
         frutas
       </p>
 
-      <div className="grid grid-cols-2 gap-3">
-        {fruits.map((f) => (
-          <IngredientCard
-            key={f._id}
-            name={f.name}
-            isSelected={selectedIds.includes(f._id)}
-            isDisabled={atMax && !selectedIds.includes(f._id)}
-            isSoldOut={isItemSoldOut(f)}
-            onClick={() => toggleFruit(f, maxFruits)}
-          />
-        ))}
-      </div>
+      {fruits.length === 0 ? (
+        <div className="rounded-2xl border border-gris-border bg-gris-light/50 p-6 text-center">
+          <p className="text-sm text-gris">
+            No hay frutas disponibles en este momento
+          </p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 gap-3">
+          {fruits.map((f) => (
+            <IngredientCard
+              key={f._id}
+              name={f.name}
+              isSelected={selectedIds.includes(f._id)}
+              isDisabled={atMax && !selectedIds.includes(f._id)}
+              isSoldOut={isItemSoldOut(f)}
+              onClick={() => toggleFruit(f, maxFruits)}
+            />
+          ))}
+        </div>
+      )}
 
       <BuilderNav
         onPrev={onPrev}

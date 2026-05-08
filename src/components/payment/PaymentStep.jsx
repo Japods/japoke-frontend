@@ -391,7 +391,11 @@ export default function PaymentStep() {
           sauces: bowl.sauces.map((s) => ({ item: s.item })),
           toppings: bowl.toppings.map((t) => ({ item: t.item })),
         },
-        extras: bowl.extras.map((e) => ({ item: e.item, quantity: e.quantity })),
+        extras: bowl.extras.map((e) => ({
+          item: e.item,
+          quantity: e.quantity,
+          preparationStyle: e.preparationStyle ?? null,
+        })),
       };
     });
 

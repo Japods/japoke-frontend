@@ -285,17 +285,21 @@ const useOrderStore = create(
           };
         }),
 
-      // Extras
+      // Extras (clave compuesta item + preparationStyle para diferenciar
+      // p.ej. Pollo Plancha vs Pollo Crispie)
       addExtra: (item) =>
         set((s) => {
           const bowl = s.currentBowl;
-          const existing = bowl.extras.find((e) => e.item === item._id);
+          const ps = item.preparationStyle ?? null;
+          const matches = (e) =>
+            e.item === item._id && (e.preparationStyle ?? null) === ps;
+          const existing = bowl.extras.find(matches);
           if (existing) {
             return {
               currentBowl: {
                 ...bowl,
                 extras: bowl.extras.map((e) =>
-                  e.item === item._id ? { ...e, quantity: e.quantity + 1 } : e
+                  matches(e) ? { ...e, quantity: e.quantity + 1 } : e
                 ),
               },
             };
@@ -305,22 +309,31 @@ const useOrderStore = create(
               ...bowl,
               extras: [
                 ...bowl.extras,
-                { item: item._id, name: item.name, extraPrice: item.extraPrice, quantity: 1 },
+                {
+                  item: item._id,
+                  name: item.name,
+                  extraPrice: item.extraPrice,
+                  preparationStyle: ps,
+                  quantity: 1,
+                },
               ],
             },
           };
         }),
 
-      removeExtra: (itemId) =>
+      removeExtra: (itemId, preparationStyle = null) =>
         set((s) => {
           const bowl = s.currentBowl;
-          const existing = bowl.extras.find((e) => e.item === itemId);
+          const ps = preparationStyle ?? null;
+          const matches = (e) =>
+            e.item === itemId && (e.preparationStyle ?? null) === ps;
+          const existing = bowl.extras.find(matches);
           if (!existing) return {};
           if (existing.quantity <= 1) {
             return {
               currentBowl: {
                 ...bowl,
-                extras: bowl.extras.filter((e) => e.item !== itemId),
+                extras: bowl.extras.filter((e) => !matches(e)),
               },
             };
           }
@@ -328,7 +341,7 @@ const useOrderStore = create(
             currentBowl: {
               ...bowl,
               extras: bowl.extras.map((e) =>
-                e.item === itemId ? { ...e, quantity: e.quantity - 1 } : e
+                matches(e) ? { ...e, quantity: e.quantity - 1 } : e
               ),
             },
           };

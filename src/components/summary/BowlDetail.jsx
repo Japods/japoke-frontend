@@ -72,7 +72,10 @@ export default function BowlDetail({ bowl, index, onEdit, onRemove }) {
                 <div>
                   <span className="text-gris">Extras:</span>
                   {bowl.extras.map((e) => (
-                    <span key={e.item} className="ml-2 text-negro">
+                    <span
+                      key={`${e.item}_${e.preparationStyle ?? ''}`}
+                      className="ml-2 text-negro"
+                    >
                       {e.name} x{e.quantity} ({formatCurrency(e.extraPrice * e.quantity)})
                     </span>
                   ))}

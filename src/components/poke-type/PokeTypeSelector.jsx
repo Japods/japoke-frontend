@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import useCatalogStore from '../../store/useCatalogStore';
 import useOrderStore from '../../store/useOrderStore';
@@ -63,6 +64,20 @@ export default function PokeTypeSelector({ onNext }) {
   function handlePromoSelect(promo) {
     selectPromotion(promo);
   }
+
+  // Si la promo ya define el tipo de poke para este bowl, lo seleccionamos
+  // y avanzamos automáticamente al builder. El effect reacciona al cambio
+  // de promo (no se monta de nuevo cuando el user selecciona la promo).
+  // Ref-guard por bowlIndex para evitar doble-fire en StrictMode.
+  const autoPokeAdvancedFor = useRef(-1);
+  useEffect(() => {
+    if (!isPromoMode || !currentPromoPokeType) return;
+    if (autoPokeAdvancedFor.current === promoBowlsBuilt) return;
+    if (currentBowl.pokeType === currentPromoPokeType) return;
+    autoPokeAdvancedFor.current = promoBowlsBuilt;
+    setPokeType(currentPromoPokeType);
+    onNext();
+  }, [isPromoMode, currentPromoPokeType, promoBowlsBuilt, currentBowl.pokeType, setPokeType, onNext]);
 
   return (
     <motion.div

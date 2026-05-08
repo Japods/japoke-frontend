@@ -147,22 +147,28 @@ function LocationPicker({ mapUrl, onLocationSet }) {
   );
 }
 
-// Genera los slots disponibles: mínimo 1 hora desde ahora, redondeado al siguiente bloque de 30 min
+// Genera los slots disponibles: mínimo 1 hora desde ahora, redondeado al siguiente bloque de 30 min.
+// La franja late-night termina a las 03:00. Si la hora actual ya es < 03:00 (después de
+// medianoche), ese mismo límite aplica al día actual; si todavía no pasamos medianoche,
+// el límite es 03:00 del día siguiente (27:00 en minutos absolutos).
+const LATE_NIGHT_END_MINUTES = 3 * 60;
+
 function getAvailableSlots() {
   const now = new Date();
   const nowMinutes = now.getHours() * 60 + now.getMinutes();
-  // Earliest allowed: 60 min from now, rounded up to next 30-min boundary
   const earliest = nowMinutes + 60;
   const earliestSlot = Math.ceil(earliest / 30) * 30;
 
+  const lastSlot =
+    nowMinutes < LATE_NIGHT_END_MINUTES
+      ? LATE_NIGHT_END_MINUTES
+      : 24 * 60 + LATE_NIGHT_END_MINUTES;
+
   const slots = [];
-  for (let h = 0; h <= 23; h++) {
-    for (const m of [0, 30]) {
-      const slotMinutes = h * 60 + m;
-      if (slotMinutes >= earliestSlot) {
-        slots.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
-      }
-    }
+  for (let slotMin = earliestSlot; slotMin <= lastSlot; slotMin += 30) {
+    const h = Math.floor(slotMin / 60) % 24;
+    const m = slotMin % 60;
+    slots.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
   }
   return slots;
 }

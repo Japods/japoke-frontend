@@ -14,23 +14,41 @@ export default function ExtrasSelector({ onFinish, onPrev }) {
   const removeExtra = useOrderStore((s) => s.removeExtra);
   const { currentExtrasTotal } = usePriceCalculator();
 
-  // Build available extras from all categories
+  // Build available extras, expanding items with preparationStyles into
+  // virtual entries so plancha vs crispie aparecen como opciones distintas.
   const extraItems = [];
   for (const cat of categories) {
     if (cat.type === 'beverage' || cat.type === 'dessert') continue;
     for (const item of cat.items) {
-      if (item.extraPrice > 0) {
+      if (item.extraPrice <= 0) continue;
+      const baseEntry = {
+        ...item,
+        categoryName: cat.name,
+        categoryType: cat.type,
+      };
+      if (item.preparationStyles?.length) {
+        for (const style of item.preparationStyles) {
+          extraItems.push({
+            ...baseEntry,
+            _virtId: `${item._id}_${style.id}`,
+            name: style.label,
+            preparationStyle: style.id,
+          });
+        }
+      } else {
         extraItems.push({
-          ...item,
-          categoryName: cat.name,
-          categoryType: cat.type,
+          ...baseEntry,
+          _virtId: `${item._id}_`,
+          preparationStyle: null,
         });
       }
     }
   }
 
-  function getExtraQty(itemId) {
-    const e = currentBowl.extras.find((x) => x.item === itemId);
+  function getExtraQty(virtId) {
+    const e = currentBowl.extras.find(
+      (x) => `${x.item}_${x.preparationStyle ?? ''}` === virtId
+    );
     return e ? e.quantity : 0;
   }
 
@@ -44,11 +62,11 @@ export default function ExtrasSelector({ onFinish, onPrev }) {
       <div className="space-y-3">
         {extraItems.map((item) => {
           const soldOut = isItemSoldOut(item);
-          const qty = getExtraQty(item._id);
+          const qty = getExtraQty(item._virtId);
 
           return (
             <div
-              key={item._id}
+              key={item._virtId}
               className={`
                 flex items-center justify-between p-4 rounded-xl border
                 transition-colors duration-200
@@ -82,7 +100,7 @@ export default function ExtrasSelector({ onFinish, onPrev }) {
                 <Counter
                   value={qty}
                   onIncrement={() => addExtra(item)}
-                  onDecrement={() => removeExtra(item._id)}
+                  onDecrement={() => removeExtra(item._id, item.preparationStyle)}
                 />
               )}
             </div>

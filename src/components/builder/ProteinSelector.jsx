@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import useCatalogStore from '../../store/useCatalogStore';
 import useOrderStore from '../../store/useOrderStore';
 import useBuilderRules from '../../hooks/useBuilderRules';
@@ -12,21 +13,26 @@ export default function ProteinSelector({ onNext, onPrev }) {
   const selectProtein = useOrderStore((s) => s.selectProtein);
   const toggleMixProtein = useOrderStore((s) => s.toggleMixProtein);
   const selectedPromotion = useOrderStore((s) => s.selectedPromotion);
+  const nextBuilderStep = useOrderStore((s) => s.nextBuilderStep);
   const { pokeTypeName, proteinGrams } = useBuilderRules();
 
-  // Premium: solo premium en individual, ambas tiers en 50/50; Base: siempre solo base
-  const tierFilter =
-    pokeTypeName.toLowerCase() === 'premium'
-      ? currentBowl.isMixProtein
-        ? ['premium', 'base']
-        : ['premium']
-      : ['base'];
-  let rawProteins = getProteinsByTiers(tierFilter).filter((p) => !p.extraOnly);
-
-  // In promo mode, filter to only allowed proteins if specified
-  if (selectedPromotion?.allowedProteins?.length > 0) {
+  // Premium: solo premium en individual, ambas tiers en 50/50; Base: siempre solo base.
+  // Si la promo restringe proteínas, esa lista manda y se ignora el tier filter
+  // (la promo puede permitir bases en un Premium, p.ej. "2 Premium con Pollo").
+  const isLockedByPromo = selectedPromotion?.allowedProteins?.length > 0;
+  let rawProteins;
+  if (isLockedByPromo) {
     const allowedIds = selectedPromotion.allowedProteins.map((p) => p._id || p);
-    rawProteins = rawProteins.filter((p) => allowedIds.includes(p._id));
+    rawProteins = getProteinsByTiers(['premium', 'base'])
+      .filter((p) => !p.extraOnly && allowedIds.includes(p._id));
+  } else {
+    const tierFilter =
+      pokeTypeName.toLowerCase() === 'premium'
+        ? currentBowl.isMixProtein
+          ? ['premium', 'base']
+          : ['premium']
+        : ['base'];
+    rawProteins = getProteinsByTiers(tierFilter).filter((p) => !p.extraOnly);
   }
 
   // Expand items with preparationStyles into virtual entries
@@ -50,6 +56,25 @@ export default function ProteinSelector({ onNext, onPrev }) {
   const perPortionGrams = currentBowl.isMixProtein
     ? proteinGrams / 2
     : proteinGrams;
+
+  // Si la promo deja exactamente las proteínas necesarias y ninguna requiere
+  // elegir estilo de preparación (plancha/crispie), seleccionamos auto y saltamos.
+  // Ref-guard porque selectProtein es toggle: en StrictMode, dos corridas del effect
+  // deseleccionan la proteína y llaman nextBuilderStep dos veces.
+  const didAutoSkipRef = useRef(false);
+  useEffect(() => {
+    if (didAutoSkipRef.current) return;
+    if (!isLockedByPromo) return;
+    if (currentBowl.proteins.length > 0) return;
+    const exactlyEnough = rawProteins.length === maxCount;
+    const noStyles = rawProteins.every((p) => !p.preparationStyles?.length);
+    if (exactlyEnough && noStyles) {
+      didAutoSkipRef.current = true;
+      proteins.forEach((p) => selectProtein(p));
+      nextBuilderStep();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div>
